@@ -1,0 +1,33 @@
+'use strict'
+
+const mongoose = require('mongoose'); // Erase if already required
+
+const DOCUMENT_NAME = 'Key'; // Define the document name
+const COLLECTION_NAME = 'Keys';
+
+// Declare the Schema of the Mongo model
+var keyTokenSchema = new mongoose.Schema({
+    user:{
+        type:mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref:'Shop'
+    },
+    privateKey:{
+        type:String,
+        required:true
+    },
+    publicKey:{
+        type:String,
+        required:true
+    },
+    refreshToken:{
+        type:Array,
+        default:[]
+    },
+},{  
+        collection: COLLECTION_NAME,
+        timestamps: true // Automatically manage createdAt and updatedAt fields 
+});
+
+//Export the model
+module.exports = mongoose.model(DOCUMENT_NAME, keyTokenSchema);
