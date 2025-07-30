@@ -4,6 +4,7 @@ const { createTokenPair } = require("../auth/authUltis");
 const shopModel = require("../models/shop.model");
 const KeyTokenService = require("./keyToken.service");
 const { getInfoData } = require('../ultis');
+const { BadRequestError } = require('../core/error.response');
 
 const roleShop = {
     SHOP:'SHOP',
@@ -19,11 +20,12 @@ class AccessService {
             
             const holderShop = await shopModel.findOne({email:email}).lean();
             if(holderShop){
-                return {
-                    code: '200002',
-                    message: "Email already exists",
-                    status:'error'
-                }
+                // return {
+                //     code: '200002',
+                //     message: "Email already exists",
+                //     status:'error'
+                // }
+                throw new BadRequestError("Error: Email already exists");
             }
 
             const hashPassword = await bcrypt.hash(password, 10);
