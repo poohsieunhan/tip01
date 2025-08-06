@@ -4,7 +4,8 @@ const { createTokenPair } = require("../auth/authUltis");
 const shopModel = require("../models/shop.model");
 const KeyTokenService = require("./keyToken.service");
 const { getInfoData } = require('../ultis');
-const { BadRequestError } = require('../core/error.response');
+const { BadRequestError, AuthenticationFailedError } = require('../core/error.response');
+const { findByEmail } = require('./shop.service');
 
 const roleShop = {
     SHOP:'SHOP',
@@ -13,7 +14,39 @@ const roleShop = {
     EDITOR:'EDITOR',
 }
 
-class AccessService {   
+class AccessService {  
+    
+    static login = async ({email,password}) => {
+        const foundShop = await findByEmail({email});
+        if(!foundShop) throw new BadRequestError("Shop not Registered");
+
+        const match = await bcrypt.compare(password, foundShop.password);
+        if(!match) throw new AuthenticationFailedError("Wrong password");
+
+        const privateKey = crypto.randomBytes(64).toString('hex');
+        const publicKey = crypto.randomBytes(64).toString('hex');
+
+        const {_id = userId} = foundShop;
+        const tokens = await createTokenPair({
+            userId,
+            email,
+        }, publicKey, privateKey);
+        //console.log(`shop tim duoc:`,foundShop); 
+
+        await KeyTokenService.createKeyToken({
+            refreshToken: tokens.refreshToken,
+            privateKey,publicKey,userId
+        })
+        
+        return {
+            shop: getInfoData({fields: ['_id','name','email'],object: foundShop}),
+            tokens
+        }
+
+    }
+    
+
+
     static signUp = async ({name,email,password}) => {
         try {
             console.log(`name:${name}, email:${email}, password:${password}`);
@@ -75,7 +108,7 @@ class AccessService {
             return {
                 code: '201',
                 metadata:{
-                    shop: getInfoData({fields: ['id','name','email'],object: newShop}),
+                    shop: getInfoData({fields: ['_id','name','email'],object: newShop}),
                     tokens
               }
             };

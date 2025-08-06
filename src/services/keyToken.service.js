@@ -1,21 +1,46 @@
 'use strict'
 const keyTokenModel = require('../models/keytoken.model');
 
+const {Types} = require('mongoose')
+
 class KeyTokenService {
 
-    static createKeyToken = async({userId,publicKey,privateKey})=>{
+    static createKeyToken = async({userId, publicKey, privateKey, refreshToken})=>{
+        // try {
+        //     //const publicKeyString = publicKey.toString();
+        //     const tokens = await keyTokenModel.create ({
+        //         user: userId,
+        //         privateKey: privateKey,
+        //         publicKey: publicKey              
+        //     })
+        //     return tokens ? tokens.publicKey : null;
+        // } catch (error) {
+        //     console.error(`Error creating key token: ${error.message}`);
+        //     return error;           
+        // }
         try {
-            //const publicKeyString = publicKey.toString();
-            const tokens = await keyTokenModel.create ({
-                user: userId,
+            const filter = {user: userId},update={
+                user:userId,
                 publicKey: publicKey,
-                privateKey: privateKey
-            })
-            return tokens ? tokens.publicKey : null;
-        } catch (error) {
-            console.error(`Error creating key token: ${error.message}`);
-            return error;           
+                privateKey: privateKey,
+                refreshTokensUsed: [],
+                refreshToken
+            },options ={
+                upsert: true, // Create a new document if no match is found
+                new: true, // Return the modified document rather than the original
+            }
+            const tokens = await keyTokenModel.findOneAndUpdate(filter, update, options);
+
+            return tokens? tokens.publicKey : null;
+
+        } catch (err) {
+            return err;
         }
+
+    }
+
+    static findById = async (userId) => {
+        return await keyTokenModel.findOne({ user: Types.ObjectId(userId) }).lean();
     }
 }
 
