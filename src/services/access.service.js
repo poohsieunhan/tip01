@@ -15,10 +15,16 @@ const roleShop = {
 }
 
 class AccessService {  
+
+    static logout = async ({keyStore}) => {
+        const delKey = await KeyTokenService.removeKeyById(keyStore._id);
+        return delKey
+    }
     
     static login = async ({email,password}) => {
         const foundShop = await findByEmail({email});
         if(!foundShop) throw new BadRequestError("Shop not Registered");
+        console.log('foundShop:', JSON.stringify(foundShop, null, 2));
 
         const match = await bcrypt.compare(password, foundShop.password);
         if(!match) throw new AuthenticationFailedError("Wrong password");
@@ -26,12 +32,12 @@ class AccessService {
         const privateKey = crypto.randomBytes(64).toString('hex');
         const publicKey = crypto.randomBytes(64).toString('hex');
 
-        const {_id = userId} = foundShop;
+        const userId = foundShop._id;
         const tokens = await createTokenPair({
             userId,
-            email,
+            email: foundShop,
         }, publicKey, privateKey);
-        //console.log(`shop tim duoc:`,foundShop); 
+        console.log(`shop tim duoc:`,foundShop); 
 
         await KeyTokenService.createKeyToken({
             refreshToken: tokens.refreshToken,

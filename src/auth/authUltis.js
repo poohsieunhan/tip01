@@ -4,6 +4,7 @@ const JWT = require('jsonwebtoken');
 const asyncHandler = require('../helpers/asyncHandler');
 const { AuthenticationFailedError, NotFoundError } = require('../core/error.response');
 const { findById } = require('../services/apikey.service');
+const { findByUserId } = require('../services/keyToken.service');
 
 const HEADER = {
     API_KEY: 'x-api-key',
@@ -53,20 +54,34 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
 
 const authentication = asyncHandler(async (req, res, next) => {
     // Check ID missing
-    const userId = req.header[HEADER.CLIENT_ID]
+    const userId = req.headers[HEADER.CLIENT_ID]
     if(!userId) throw new AuthenticationFailedError('Client ID is missing');
+    //console.log(`userIddddd:`, userId);
 
     // Check token missing
-    const keyStore = await findById(userId);
+    const keyStore = await findByUserId(userId);
     if(!keyStore) throw new NotFoundError('Key not found for this user');
+    //console.log(`keyStore:`, keyStore);
 
     //Verify token
-    const accessToken = req.header[HEADER.AUTHORIZATION];
+    const accessToken = req.headers[HEADER.AUTHORIZATION];
     if(!accessToken) throw new AuthenticationFailedError('Access token is missing');    
 
-}
+    try {
+        const decodeUser= JWT.verify(accessToken, keyStore.publicKey);
+        if(!decodeUser) throw new AuthenticationFailedError('Access token is invalid');
+        req.keyStore = keyStore;
+        console.log(`decodeUserssssss:`, decodeUser, keyStore);
+        
+        return next();
+    } catch (error) {
+        throw error;
+    }
+
+})
 
 
 module.exports = {
-    createTokenPair
+    createTokenPair,
+    authentication
 }
