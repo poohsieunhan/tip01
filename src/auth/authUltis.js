@@ -53,28 +53,42 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
 };
 
 const authentication = asyncHandler(async (req, res, next) => {
+    console.log(`=== Authentication Middleware ===`);
+    console.log(`Headers:`, req.headers);
+    
     // Check ID missing
     const userId = req.headers[HEADER.CLIENT_ID]
+    console.log(`Client ID from header:`, userId);
+    
     if(!userId) throw new AuthenticationFailedError('Client ID is missing');
-    //console.log(`userIddddd:`, userId);
 
     // Check token missing
+    console.log(`Looking for keyStore with userId:`, userId);
     const keyStore = await findByUserId(userId);
     if(!keyStore) throw new NotFoundError('Key not found for this user');
-    //console.log(`keyStore:`, keyStore);
+    console.log(`KeyStore found:`, keyStore);
 
     //Verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION];
+    console.log(`Access token from header:`, accessToken);
+    
     if(!accessToken) throw new AuthenticationFailedError('Access token is missing');    
 
     try {
+        console.log(`Verifying JWT token...`);
         const decodeUser= JWT.verify(accessToken, keyStore.publicKey);
         if(!decodeUser) throw new AuthenticationFailedError('Access token is invalid');
-        req.keyStore = keyStore;
-        console.log(`decodeUserssssss:`, decodeUser, keyStore);
         
+        console.log(`JWT decoded successfully:`, decodeUser);
+        req.keyStore = keyStore;
+        req.user = decodeUser; // Gán user info vào req.user
+        console.log(`req.user assigned:`, req.user);
+        console.log(`req.user.userId:`, req.user.userId);
+        
+        console.log(`Authentication successful, proceeding...`);
         return next();
     } catch (error) {
+        console.error(`JWT verification error:`, error);
         throw error;
     }
 

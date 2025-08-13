@@ -1,0 +1,54 @@
+@url_dev = http://localhost:2811/api/v1
+@api_key = 8a4fbc2ac065c254ca1c067e000f15bcd2db4f54c612dac2a588de9e71cf8d4e3c5d64277dc4d1c0d3809aa047d8a9366bf6020916eb7d2ee4205d369c26184e
+
+### 1. Đăng nhập để lấy accessToken và userId
+POST {{url_dev}}/shop/login
+Content-Type: application/json
+x-api-key: {{api_key}}
+
+{
+    "email": "shop1@gmail.com",
+    "password": "12345678"
+}
+
+### 2. Tạo sản phẩm điện tử (iPhone)
+POST {{url_dev}}/product
+Content-Type: application/json
+x-api-key: "8a4fbc2ac065c254ca1c067e000f15bcd2db4f54c612dac2a588de9e71cf8d4e3c5d64277dc4d1c0d3809aa047d8a9366bf6020916eb7d2ee4205d369c26184e"
+x-client-id: "68972b2c179c9257c47371bf"
+authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODk3MmIyYzE3OWM5MjU3YzQ3MzcxYmYiLCJlbWFpbCI6eyJfaWQiOiI2ODk3MmIyYzE3OWM5MjU3YzQ3MzcxYmYiLCJuYW1lIjoiU2hvcDEiLCJlbWFpbCI6InNob3AxQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoiJDJiJDEwJGthcDdNSVJXaS9vNVJJUGpuT1p2bi5BMzJmUXdHVGZHT05qWjRpSzI1Q1lRNjlDdFk4WlBlIiwic3RhdHVzIjoiaW5hY3RpdmUiLCJyb2xlcyI6WyJTSE9QIl19LCJpYXQiOjE3NTUwOTY3MTIsImV4cCI6MTc1NTI2OTUxMn0.t9lF5qni9gHH45CMEuAfumDEg4GWHm4AjBd6DQ-E5VI"
+
+{
+    "product_name": "iPhone 15 512GB",
+    "product_thumbnail": "https://example.com/iphone15.jpg",
+    "product_description": "iPhone 15 mới nhất với 512GB",
+    "product_price": 25000000,
+    "product_quantity": 10,
+    "product_type": "electronic",
+    "product_attributes": {
+        "manufacture": "Apple",
+        "model": "15 512Gb",
+        "color": "Yellow"
+    }
+}
+
+### 3. Tạo sản phẩm quần áo
+POST {{url_dev}}/product
+Content-Type: application/json
+x-api-key: "8a4fbc2ac065c254ca1c067e000f15bcd2db4f54c612dac2a588de9e71cf8d4e3c5d64277dc4d1c0d3809aa047d8a9366bf6020916eb7d2ee4205d369c26184e"
+x-client-id: "68972b2c179c9257c47371bf"
+authorization: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODk3MmIyYzE3OWM5MjU3YzQ3MzcxYmYiLCJlbWFpbCI6eyJfaWQiOiI2ODk3MmIyYzE3OWM5MjU3YzQ3MzcxYmYiLCJuYW1lIjoiU2hvcDEiLCJlbWFpbCI6InNob3AxQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoiJDJiJDEwJGthcDdNSVJXaS9vNVJJUGpuT1p2bi5BMzJmUXdHVGZHT05qWjRpSzI1Q1lRNjlDdFk4WlBlIiwic3RhdHVzIjoiaW5hY3RpdmUiLCJyb2xlcyI6WyJTSE9QIl19LCJpYXQiOjE3NTUwOTU0NTgsImV4cCI6MTc1NTI2ODI1OH0.uYN4eDjjQCePcL2moAdbqf75y2KE4LZ23kpS5D3z8hg"
+
+{
+    "product_name": "Áo thun nam",
+    "product_thumbnail": "https://example.com/aothun.jpg",
+    "product_description": "Áo thun nam chất liệu cotton",
+    "product_price": 200000,
+    "product_quantity": 50,
+    "product_type": "clothing",
+    "product_attributes": {
+        "brand": "Nike",
+        "size": "L",
+        "meterial": "Cotton"
+    }
+}
