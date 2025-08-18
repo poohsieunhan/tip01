@@ -58,6 +58,30 @@ class KeyTokenService {
     static deleteKeyById = async (userId) => {
         return await keyTokenModel.deleteOne({user : userId});
     }
+
+    static updateKeyToken = async ({userId, refreshToken, refreshTokenUsed}) => {
+        try {
+            const filter = { user: userId };
+            const update = {
+                $set: {
+                    refreshToken: refreshToken
+                },
+                $addToSet: {
+                    refreshTokensUsed: refreshTokenUsed
+                }
+            };
+            
+            const result = await keyTokenModel.findOneAndUpdate(filter, update, {
+                new: true,
+                upsert: false
+            });
+            
+            return result;
+        } catch (error) {
+            console.error('Error updating key token:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = KeyTokenService;

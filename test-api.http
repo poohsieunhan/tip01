@@ -1,0 +1,22 @@
+### Test Login để lấy tokens
+POST http://localhost:3000/v1/api/access/shop/login
+Content-Type: application/json
+x-client-id: YOUR_USER_ID_HERE
+x-api-key: YOUR_API_KEY_HERE
+
+{
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### Test Logout với Refresh Token
+POST http://localhost:3000/v1/api/access/shop/logout
+x-client-id: YOUR_USER_ID_HERE
+x-api-key: YOUR_API_KEY_HERE
+x-token-id: YOUR_REFRESH_TOKEN_HERE
+
+### Test Logout với Access Token
+POST http://localhost:3000/v1/api/access/shop/logout
+x-client-id: YOUR_USER_ID_HERE
+x-api-key: YOUR_API_KEY_HERE
+authorization: YOUR_ACCESS_TOKEN_HERE

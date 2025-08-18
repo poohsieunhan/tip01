@@ -16,11 +16,51 @@ const roleShop = {
 
 class AccessService {  
 
+    static handleRefreshTokenV2 = async ({keyStore,user,refreshToken}) => {
+        const {userId,email} = user;
+        
+        console.log('=== Debug handleRefreshTokenV2 ===');
+        console.log('userId:', userId);
+        console.log('email:', email);
+        console.log('refreshToken from request:', refreshToken);
+        console.log('keyStore.refreshToken:', keyStore.refreshToken);
+        console.log('keyStore.refreshTokensUsed:', keyStore.refreshTokensUsed);
+
+        if(keyStore.refreshTokensUsed.includes(refreshToken)) {
+            await KeyTokenService.deleteKeyById(userId);
+            throw new ForbiddenError("Refresh Token is used, please login again");
+        }
+
+        if(keyStore.refreshToken !== refreshToken) {
+            console.log('❌ Refresh Token mismatch!');
+            console.log('Expected:', keyStore.refreshToken);
+            console.log('Received:', refreshToken);
+            throw new AuthenticationFailedError("Refresh Token is invalid");
+        }
+        
+        // Lấy email từ user object
+        const userEmail = email.email || email;
+        const foundShop = await findByEmail({email: userEmail});
+        if(!foundShop) throw new NotFoundError("Shop not found");
+
+        const tokens = await createTokenPair({userId,email: userEmail},keyStore.publicKey,keyStore.privateKey);
+
+        // Sử dụng KeyTokenService để update thay vì keyStore.updateOne
+        await KeyTokenService.updateKeyToken({
+            userId,
+            refreshToken: tokens.refreshToken,
+            refreshTokenUsed: refreshToken
+        });
+
+        return{
+            user: {userId,email: userEmail},
+            tokens
+        }
+    }
+    
     static handleRefreshToken = async ({refreshToken}) => {
         const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken);
-        console.log(`foundToken:`, foundToken);
         
-
         if(foundToken) {
            const {userId,email} = await verifyJWT(refreshToken, foundToken.privateKey);
             await KeyTokenService.deleteKeyById(userId);
@@ -30,16 +70,9 @@ class AccessService {
         const holderToken = await KeyTokenService.findByRefreshToken(refreshToken);
         if(!holderToken) throw new AuthenticationFailedError("Shop not found or refresh token invalid");
 
-        console.log(`holderToken:`, holderToken);
-        
-
         const {userId, email} = await verifyJWT(refreshToken, holderToken.privateKey);
         const foundShop = await findByEmail(email);
-        if(!foundShop) throw new NotFoundError("Shop not found");
-
-        console.log(`foundShop2:`, foundShop);
-        
-
+        if(!foundShop) throw new NotFoundError("Shop not found");       
         const tokens = await createTokenPair({
             userId,
             email: foundShop.email,

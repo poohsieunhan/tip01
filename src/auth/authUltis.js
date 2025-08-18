@@ -1,7 +1,7 @@
 'use strict'
 
 const JWT = require('jsonwebtoken');
-const asyncHandler = require('../helpers/asyncHandler');
+const asyncHandler = require('../helpers/asyncHandler.js');
 const { AuthenticationFailedError, NotFoundError } = require('../core/error.response');
 const { findById } = require('../services/apikey.service');
 const { findByUserId } = require('../services/keyToken.service');
@@ -9,7 +9,8 @@ const { findByUserId } = require('../services/keyToken.service');
 const HEADER = {
     API_KEY: 'x-api-key',
     CLIENT_ID: 'x-client-id',
-    AUTHORIZATION:'authorization'
+    AUTHORIZATION:'authorization',
+    REFRESHTOKEN:'x-token-id'
 }
 
 const createTokenPair = async (payload, publicKey, privateKey) => {
@@ -52,46 +53,95 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
     }
 };
 
-const authentication = asyncHandler(async (req, res, next) => {
-    console.log(`=== Authentication Middleware ===`);
-    console.log(`Headers:`, req.headers);
-    
+// const authentication = asyncHandler(async (req, res, next) => {
+//     // Check ID missing
+//     const userId = req.headers[HEADER.CLIENT_ID]
+//     if(!userId) throw new AuthenticationFailedError('Client ID is missing');
+
+//     // Check token missing
+//     const keyStore = await findByUserId(userId);
+//     if(!keyStore) throw new NotFoundError('Key not found for this user');
+
+//     if(req.headers[HEADER.REFRESHTOKEN]){
+//         try {
+//             const refreshToken = req.headers[HEADER.REFRESHTOKEN];
+//             console.log(`refreshToken:`, refreshToken);
+//             const decodeUser= JWT.verify(refreshToken, keyStore.privateKey);
+//             if(userId !== decodeUser.userId) throw new AuthenticationFailedError('Invalid User ID');
+            
+//             req.keyStore = keyStore;
+//             req.user = decodeUser; // Gán user info vào req.user
+//             req.refreshToken = refreshToken;
+//             return next();
+//         } catch (error) {
+//             throw error;
+//         }
+//     }
+
+//     //Verify token
+//     // const accessToken = req.headers[HEADER.AUTHORIZATION];    
+//     // console.log(`accessToken:`, accessToken);
+//     // if(!accessToken) throw new AuthenticationFailedError('Access token is missing');    
+
+//     // try {
+//     //     const decodeUser= JWT.verify(accessToken, keyStore.publicKey);
+//     //     if(!decodeUser) throw new AuthenticationFailedError('Access token is invalid');
+        
+//     //     console.log(`JWT decoded successfully:`, decodeUser);
+//     //     req.keyStore = keyStore; 
+//     //     return next();
+//     // } catch (error) {
+//     //     throw error;
+//     // }
+
+// })
+
+const authenticationV2 = asyncHandler(async (req, res, next) => {
     // Check ID missing
     const userId = req.headers[HEADER.CLIENT_ID]
-    console.log(`Client ID from header:`, userId);
     
     if(!userId) throw new AuthenticationFailedError('Client ID is missing');
 
     // Check token missing
-    console.log(`Looking for keyStore with userId:`, userId);
     const keyStore = await findByUserId(userId);
     if(!keyStore) throw new NotFoundError('Key not found for this user');
-    console.log(`KeyStore found:`, keyStore);
 
-    //Verify token
-    const accessToken = req.headers[HEADER.AUTHORIZATION];
-    console.log(`Access token from header:`, accessToken);
-    
-    if(!accessToken) throw new AuthenticationFailedError('Access token is missing');    
-
-    try {
-        console.log(`Verifying JWT token...`);
-        const decodeUser= JWT.verify(accessToken, keyStore.publicKey);
-        if(!decodeUser) throw new AuthenticationFailedError('Access token is invalid');
-        
-        console.log(`JWT decoded successfully:`, decodeUser);
-        req.keyStore = keyStore;
-        req.user = decodeUser; // Gán user info vào req.user
-        console.log(`req.user assigned:`, req.user);
-        console.log(`req.user.userId:`, req.user.userId);
-        
-        console.log(`Authentication successful, proceeding...`);
-        return next();
-    } catch (error) {
-        console.error(`JWT verification error:`, error);
-        throw error;
+    // Kiểm tra refreshToken trước
+    if(req.headers[HEADER.REFRESHTOKEN]){
+        try {
+            const refreshToken = req.headers[HEADER.REFRESHTOKEN];
+            console.log(`Using refresh token:`, refreshToken);
+            const decodeUser = JWT.verify(refreshToken, keyStore.privateKey);
+            if(userId !== decodeUser.userId) throw new AuthenticationFailedError('Invalid User ID');
+            
+            console.log(`JWT decoded successfully with refresh token:`, decodeUser);
+            req.keyStore = keyStore;
+            req.user = decodeUser;
+            req.refreshToken = refreshToken;
+            return next();
+        } catch (error) {
+            throw new AuthenticationFailedError('Invalid refresh token');
+        }
     }
 
+    // Kiểm tra accessToken
+    const accessToken = req.headers[HEADER.AUTHORIZATION];
+    if(!accessToken) {
+        throw new AuthenticationFailedError('Access token is missing');    
+    }
+
+    try {
+        const decodeUser = JWT.verify(accessToken, keyStore.publicKey);
+        if(!decodeUser) throw new AuthenticationFailedError('Access token is invalid');
+        
+        console.log(`JWT decoded successfully with access token:`, decodeUser);
+        req.keyStore = keyStore;
+        req.user = decodeUser;
+        
+        return next();
+    } catch (error) {
+        throw new AuthenticationFailedError('Invalid access token');
+    }
 })
 
 const verifyJWT = async (token,keySecret)=>{
@@ -100,6 +150,6 @@ const verifyJWT = async (token,keySecret)=>{
 
 module.exports = {
     createTokenPair,
-    authentication,
-    verifyJWT
+    verifyJWT,
+    authenticationV2
 }
