@@ -8,8 +8,18 @@ const router = express.Router();
 
 router.use(apiKey);
 router.use(checkPermission('0000'));
+
+router.get('/search/:keySearch',asyncHandler(productController.getListSearchProduct));
+
 router.use(authenticationV2);
 
 router.post('',asyncHandler(productController.creatProduct));
+
+router.post('/publish/:id',asyncHandler(productController.publishProductByShop));
+
+router.post('/unpublish/:id',asyncHandler(productController.unPublishProductByShop));
+
+router.get('/drafts/all',asyncHandler(productController.getAllDraftForShop));
+router.get('/published/all',asyncHandler(productController.getAllPublishedForShop));    
 
 module.exports = router;
