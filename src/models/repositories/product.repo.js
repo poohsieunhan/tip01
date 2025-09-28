@@ -2,6 +2,7 @@
 
 const {product,electronic,clothing} = require('../product.model');
 const { Types } = require('mongoose');
+const {getSelectData} = require('../../ultis');
 
 const findAllDraftForShop = async ({query,limit,skip}) => {
     return await product.find(query)
@@ -62,10 +63,27 @@ const searchProductByUser = async ({keySearch}) => {
     return products
 }
 
+const findAllProducts = async ({limit,sort,page,filter,select}) => {
+  const skip = (page - 1) * limit
+  const sortBy = sort === 'ctime' ? {_id: -1} : {_id: -1}
+  const products = await product.find(filter)
+  .sort(sortBy)
+  .skip(skip)
+  .limit(limit)
+  .select(getSelectData(select))
+  .lean().exec()
+  return products
+}
+
+const findProduct = async ({product_id, unSelect = 0}) => {
+  return await product.findById(product_id).select(UnGetSelectData(unSelect))
+}
+
 module.exports = {
     findAllDraftForShop,
     findAllPublishedForShop,
     publishProductByShop,
     unPublishProductByShop,
-    searchProductByUser
+    searchProductByUser,
+    findAllProducts
 }

@@ -1,7 +1,7 @@
 
 const {product,clothing,electronic} = require("../models/product.model")
 const {BadRequestError} = require("../core/error.response")
-const {findAllDraftForShop,findAllPublishedForShop,publishProductByShop} = require("../models/repositories/product.repo")    
+const {findAllDraftForShop,findAllPublishedForShop,publishProductByShop,findAllProducts} = require("../models/repositories/product.repo")    
 
 class ProductFactory{
     static productRegister = {}
@@ -36,6 +36,15 @@ class ProductFactory{
 
     static async searchProduct({keySearch}){
         return await searchProductByUser({keySearch})
+    }
+
+    static async findAllProducts({limit=50,sort='ctime',page=1,filter={isPublished: true}}){
+        return await findAllProducts({limit,sort,page,filter,
+            select:['product_name','product_price','product_thumbnail']})
+    }
+    
+    static async findProduct({product_id}){
+        return await findProduct({product_id, unSelect:['__v']})
     }
 }
 
