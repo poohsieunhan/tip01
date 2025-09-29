@@ -1,8 +1,10 @@
 'use strict';
 require('dotenv').config();
 const mongoose = require('mongoose');   
-const {db:{host,port,name}} = require('../configs/config.mongodb.js'); // Importing the database configuration    
-const connectionString = `mongodb://${host}:${port}/${name}`;
+//const {db:{host,port,name}} = require('../configs/config.mongodb.js');
+const {db:{username,password}} = require('../configs/config.mongodb.js') // Importing the database configuration    
+//const connectionString = `mongodb://${host}:${port}/${name}`;
+const connectionString = `mongodb+srv://${username}:${password}@cluster0.njr6qrg.mongodb.net/tip01?retryWrites=true&w=majority&appName=Cluster0`;
 const {countConnect,checkOverload} = require('../helpers/checkConnect.js');
 
 class Database {

@@ -1,35 +1,32 @@
-const mongoose = require('mongoose');
-const apikeyModel = require('../models/apikey.model');
-const crypto = require('crypto');
+'use strict';
 
-// Kết nối MongoDB
-mongoose.connect('mongodb://localhost:27017/shopDEV', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+const { createApiKey } = require('../services/apikey.service');
+const dbInstance = require('../dbs/init.mongodb');
 
-const createApiKey = async () => {
+const createNewApiKey = async () => {
     try {
-        // Tạo API key mới
-        const newKey = await apikeyModel.create({
-            key: crypto.randomBytes(64).toString('hex'),
-            permission: ['0000'],
-            status: true
-        });
+        console.log('🚀 Đang kết nối đến MongoDB...');
+        // Database sẽ tự động kết nối khi import
         
-        console.log('=== API Key Created Successfully ===');
-        console.log('Key:', newKey.key);
-        console.log('Permission:', newKey.permission);
-        console.log('Status:', newKey.status);
-        console.log('=====================================');
+        console.log('🔑 Đang tạo API key mới...');
+        const newApiKey = await createApiKey();
         
-        return newKey;
+        console.log('\n✅ API Key đã được tạo thành công!');
+        console.log('📋 Thông tin API Key:');
+        console.log(`   - Key: ${newApiKey.key}`);
+        console.log(`   - Permission: ${JSON.stringify(newApiKey.permission)}`);
+        console.log(`   - Status: ${newApiKey.status}`);
+        console.log(`   - Created At: ${newApiKey.createdAt}`);
+        
+        console.log('\n💡 Bạn có thể sử dụng API key này trong header:');
+        console.log(`   x-api-key: ${newApiKey.key}`);
+        
+        process.exit(0);
     } catch (error) {
-        console.error('Error creating API key:', error);
-    } finally {
-        mongoose.connection.close();
+        console.error('❌ Lỗi khi tạo API key:', error);
+        process.exit(1);
     }
 };
 
-// Chạy script
-createApiKey();
+// Chạy hàm tạo API key
+createNewApiKey();
