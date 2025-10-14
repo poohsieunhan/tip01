@@ -1,7 +1,8 @@
 
 const {product,clothing,electronic} = require("../models/product.model")
 const {BadRequestError} = require("../core/error.response")
-const {findAllDraftForShop,findAllPublishedForShop,publishProductByShop,searchProductByUser} = require("../models/repositories/product.repo")    
+const {findAllDraftForShop,findAllPublishedForShop,publishProductByShop,findAllProducts,updateProductById} = require("../models/repositories/product.repo")    
+const {removeUndefinedObject,updateNestedObjectParse} = require("../ultis")
 
 class ProductFactory{
     static productRegister = {}
@@ -10,14 +11,16 @@ class ProductFactory{
     }
 
     static async createProduct(type,payload){
-        // Chấp nhận type không phân biệt hoa/thường
-        const typeKeys = Object.keys(ProductFactory.productRegister || {})
-        const matchedKey = typeKeys.find(k => (k || '').toLowerCase() === (type || '').toLowerCase())
-        const productClass = matchedKey ? ProductFactory.productRegister[matchedKey] : undefined
-        if(!productClass) throw new BadRequestError(`Invalid type: ${type}`)
+        const productClass = ProductFactory.productRegister[type]
+        if(!productClass) throw BadRequestError(`Invalid type: ${type}`)
         return new productClass(payload).createProduct()
     }
 
+    static async updateProduct(type,product_id,payload){
+        const productClass = ProductFactory.productRegister[type]
+        if(!productClass) throw BadRequestError(`Invalid type: ${type}`)
+        return new productClass(payload).updateProduct(product_id)
+    }
 
     static async publishProductByShop({product_shop,product_id}){
         return await publishProductByShop({product_shop,product_id})
@@ -39,6 +42,15 @@ class ProductFactory{
 
     static async searchProduct({keySearch}){
         return await searchProductByUser({keySearch})
+    }
+
+    static async findAllProducts({limit=50,sort='ctime',page=1,filter={isPublished: true}}){
+        return await findAllProducts({limit,sort,page,filter,
+            select:['product_name','product_price','product_thumbnail']})
+    }
+    
+    static async findProduct({product_id}){
+        return await findProduct({product_id, unSelect:['__v']})
     }
 }
 
@@ -63,21 +75,38 @@ class Product{
             _id: product_id
         })
     }
+
+    async updateProduct(productId, bodyUpdate){
+        return await updateProductById({productId,bodyUpdate,model:product})
+    }
 }
 
 class Clothing extends Product{
     async createProduct(){
         console.log(`Create Clothing Func`);
         
-		const newClothing = await clothing.create(this.product_attributes)
-		if(!newClothing) throw new BadRequestError("Create Clothing unsuccessfull")
+        const newClothing = await clothing.create(this.product_attributes)
+        if(!newClothing) throw BadRequestError("Create Clothing unsuccessfull")
 
         const newProduct = await super.createProduct() 
-		if(!newProduct) throw new BadRequestError("Create Product unsuccessfull") 
+        if(!newProduct) throw BadRequestError("Create Product unsuccessfull") 
 
         return newProduct
     }
-}
+
+    async updateProduct(productID){
+        const objectParams = removeUndefinedObject(this)
+        if(objectParam.product_attributes){
+            await updateProductById({
+                productID,
+                bodyUpdate: updateNestedObjectParse(objectParams),
+                model:clothing
+            })
+        }   
+        const UpdateProduct = await super.updateProduct(productId, updateNestedObjectParse(objectParams))
+        return UpdateProduct
+    }
+} 
 
 class Electronic extends Product{
     async createProduct(){
@@ -88,10 +117,10 @@ class Electronic extends Product{
             ...this.product_attributes,
             product_shop: this.product_shop
         })
-		if(!newElectronic) throw new BadRequestError("Create Electronic unsuccessfull")
+        if(!newElectronic) throw BadRequestError("Create Electronic unsuccessfull")
 
         const newProduct = await super.createProduct(newElectronic._id) 
-		if(!newProduct) throw new BadRequestError("Create Product unsuccessfull") 
+        if(!newProduct) throw BadRequestError("Create Product unsuccessfull") 
 
         return newProduct
     }
@@ -103,10 +132,10 @@ class Furniture extends Product{
             ...this.product_attributes,
             product_shop: this.product_shop
         })
-		if(!newFurniture) throw new BadRequestError("Create Furniture unsuccessfull")
+        if(!newFurniture) throw BadRequestError("Create Furniture unsuccessfull")
 
         const newProduct = await super.createProduct(newFurniture._id) 
-		if(!newProduct) throw new BadRequestError("Create Product unsuccessfull") 
+        if(!newProduct) throw BadRequestError("Create Product unsuccessfull") 
 
         return newProduct
     }

@@ -24,7 +24,17 @@ class ProductController {
                 product_shop: product_shop
             })
         }).send(res)     
-    }    
+    }
+    
+    updateProduct = async (req, res, next) => {
+        new SuccessResponse({
+            message: "Update Product Successfully",
+            metadata: await ProductService.updateProduct(req.body.product_type,req.params.product_id,{
+                ...req.body,
+                product_shop: req.user.userId
+            })
+        }).send(res)
+    }
 
     getAllDraftForShop = async (req, res, next) => {
         new SuccessResponse({
