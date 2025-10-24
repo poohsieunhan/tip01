@@ -3,6 +3,7 @@ const {product,clothing,electronic} = require("../models/product.model")
 const {BadRequestError} = require("../core/error.response")
 const {findAllDraftForShop,findAllPublishedForShop,publishProductByShop,findAllProducts,updateProductById} = require("../models/repositories/product.repo")    
 const {removeUndefinedObject,updateNestedObjectParse} = require("../ultis")
+const {insertInventory} = require("../models/repositories/inventory.repo")
 
 class ProductFactory{
     static productRegister = {}
@@ -70,10 +71,19 @@ class Product{
     }
 
     async createProduct(product_id){
-        return await product.create({
+        const newProduct = await product.create({
             ...this,
             _id: product_id
         })
+        if(newProduct) {
+            await insertInventory({
+                productId: newProduct._id,
+                shopId: this.product_shop,
+                stock: this.product_quantity,
+                location: 'unKnow'
+            })
+        }
+        return newProduct
     }
 
     async updateProduct(productId, bodyUpdate){
