@@ -1,9 +1,10 @@
 'use strict'
-const { BadRequestError } = require("../core/error.response")
+const { BadRequestError, NotFoundError } = require("../core/error.response")
 const discountModel = require("../models/discount.model")
 const {convertToObjectIdMongoose} = require("../ultis")
 const {findAllProducts} = require("../models/repositories/product.repo")
-const {findAllDiscountCodeSelect,findAllDiscountCodeUnSelect} = require("../models/repositories/discount.repo")
+const {findAllDiscountCodeSelect,findAllDiscountCodeUnSelect, checkDiscountCodeExists} = require("../models/repositories/discount.repo")
+const { product } = require("../models/product.model")
 
 class DiscountService {
     static async createDiscount(payload){
@@ -98,7 +99,7 @@ class DiscountService {
     static async getAllDiscountCodesByShop (
         limit,page,shopId
     ){
-        const discount = await findAllDiscountCodeUnSelect({
+        const discounts = await findAllDiscountCodeUnSelect({
             limit: +limit,
             page: +page,
             filter:{
@@ -108,6 +109,46 @@ class DiscountService {
             unSelect:['__v','discount_shopId'],
             model:discount
         })
-        return discount
+        return discounts
+    }
+
+    static async getDiscountAmount({codeId,userId,shopId,products}){
+        const foundDiscount = await checkDiscountCodeExists({
+            model:discountModel,
+            filter:{
+                discount_code:codeId,
+                discount_shopId:convertToObjectIdMongoose(shopId),
+            }
+        })
+        
+        if(!foundDiscount) throw new NotFoundError("Discount code not found")
+        const{
+            discount_is_active,
+            discount_max_uses,
+            discount_min_order_value
+        }= foundDiscount
+        
+        if(!discount_is_active) throw new NotFoundError("Discount code is not active")
+        if(!discount_max_uses) throw new NotFoundError("Discount code has reached maximum usage limit")
+        
+        let totalOrderValue = 0
+        if(discount_min_order_value > 0){
+            totalOrderValue = products.reduce((accumulator,product)=>{
+                return accumulator += product.quantity * product.product_price
+            },0)
+
+            if(totalOrderValue < discount_min_order_value)
+                throw new NotFoundError(`Order value must be at least ${discount_min_order_value} to use this discount code`)
+        }
+        
+        if(discount_max_uses_per_user > 0){
+            const userUsedCount = discount_users_used.filter(user=>user.toString()===userId).length
+            if(userUsedCount >= discount_max_uses_per_user)
+                throw new NotFoundError("You have reached the maximum usage limit for this discount code")
+        }
+
+        const amount
+
+        return foundDiscount
     }
 }
