@@ -1,6 +1,7 @@
 'use strict'
 
 const {model,Schema,Types} = require('mongoose'); // Erase if already required
+const mongoose = require('mongoose');
 
 const DOCUMENT_NAME = 'Inventory'; // Define the document name
 const COLLECTION_NAME = 'Inventories';
