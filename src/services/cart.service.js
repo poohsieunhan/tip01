@@ -29,11 +29,11 @@ class CartService {
         return await cartModel.findOneAndUpdate(query, updateSet, option);
     }
 
-    static async addToCart({userId, product =[]}) {
+    static async addToCart({userId, product ={}}) {
         //check xem da co gio hang chua
         const userCart = await cartModel.findOne({cart_userId: userId, cart_status: 'active'});
         if (!userCart) {
-            return await CartService.createUserCart({{userId, product});
+            return await CartService.createUserCart({userId, product});
         }
 
         //co gio hang nhung chua co san pham
@@ -46,7 +46,7 @@ class CartService {
         return await CartService.updateUserCartQuantity({userId, product});
     } 
 
-    static async addToCardtV2({userId, product = {}}) {
+    static async addToCartV2({userId, product = {}}) {
         const {productId, quantity,old_quantity} = shop_order_ids[0]?.item_products[0];
         const foundProduct = await getProductbyId(productId);
         if(!foundProduct) throw new NotFoundError("Product not found");
