@@ -2,7 +2,7 @@
 
 const {product,electronic,clothing} = require('../product.model');
 const { Types } = require('mongoose');
-const {getSelectData} = require('../../ultis');
+const {getSelectData, convertToObjectIdMongo} = require('../../ultis');
 
 const findAllDraftForShop = async ({query,limit,skip}) => {
     return await product.find(query)
@@ -85,6 +85,10 @@ const updateProductById = async (productId, bodyUpdate,model,isNew=true) => {
   })
 }
 
+const getProductbyId = async ({productId}) => {
+    return await product.findOne({_id: convertToObjectIdMongo(productId)}).lean()
+}
+
 module.exports = {
     findAllDraftForShop,
     findAllPublishedForShop,
@@ -93,5 +97,6 @@ module.exports = {
     searchProductByUser,
     findAllProducts,
     findProduct,
-    updateProductById
+    updateProductById,
+    getProductbyId
 }
