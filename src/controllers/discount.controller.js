@@ -48,3 +48,5 @@ class DiscountController {
         }).send(res)
     }   
 }
+
+module.exports = new DiscountController()

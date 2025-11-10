@@ -147,8 +147,43 @@ class DiscountService {
                 throw new NotFoundError("You have reached the maximum usage limit for this discount code")
         }
 
-        const amount
+        const amount = discount_type === 'fixed_amount' ? discount_value : (totalOrderValue * discount_value) / 100
 
-        return foundDiscount
+        return {
+            totalOrderValue,
+            discount: amount,
+            totalPrice: totalOrderValue - amount
+        }
+    }
+
+    static async deleteDiscountCode(){
+        const deleted = await discountModel.findOneAndDelete({
+            discount_code:codeId,
+            discount_shopId:convertToObjectIdMongoose(shopId),
+        })
+        return deleted
+    }
+
+    static async cancelDiscountCode({codeId,userId,shopId}){
+        const foundDiscount = await checkDiscountCodeExists({
+            model:discountModel,
+            filter:{
+                discount_code:codeId,
+                discount_shopId:convertToObjectIdMongoose(shopId),
+            }
+        })  
+        if(!foundDiscount) throw new NotFoundError("Discount code not found")
+            
+        const result = await discountModel.findByIdAndUpdate(
+            foundDiscount._id,
+            {
+                $inc:{discount_used_count:-1,discount_max_uses:-1},
+                $pull:{discount_users_used:convertToObjectIdMongoose(userId)}
+            },
+            {new:true}
+        ).lean()
+        return result
     }
 }
+
+module.exports = DiscountService
