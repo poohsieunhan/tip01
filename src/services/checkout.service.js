@@ -4,6 +4,7 @@ const {findCartById} = require("../models/repositories/cart.repo")
 const {getProductbyId, checkProductByServer} = require("../models/repositories/product.repo");
 const { checkout } = require("../routes");
 const { getDiscountAmount } = require("./discount.service");
+const {aquireLock, releaseLock} = require("./redis.service");
 
 class CheckoutService {
     /*  
@@ -110,6 +111,32 @@ class CheckoutService {
             shop_order_ids,
             shop_order_ids_new
         }
+   }
+
+   static async orderByUser({shop_order_ids, userId, cartId,user_address={},user_payment={}}){ 
+        const {checkout_order, shop_order_ids_new} = await this.checkoutReview({
+            cartId, userId, shop_order_ids
+        })
+        //check lai lan nua xem co vuot ton kho hay khong
+         const products = shop_order_ids_new.flatMap(order => order.item_products);
+         console.log('products [1]',products)
+         const acquiredLocks = [];
+         for(let i=0;i<products.length;i++){
+            const {productId, quantity} = products[i];
+            const keyLock = await aquireLock(productId, quantity,cartId);
+            acquiredLocks.push(keyLock?true:false);
+            if(keyLock){
+                await releaseLock(keyLock);
+            }
+         }
+         //check neu co mot san pham het hang trong kho
+         if(acquiredLocks.includes(false)){
+            throw new BadRequestError("One or more products are out of stock");
+         }
+
+         const newOrder = await orderModel.create()
+
+         return newOrder;
    }
 }
 
