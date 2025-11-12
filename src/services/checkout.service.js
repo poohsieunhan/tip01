@@ -134,9 +134,16 @@ class CheckoutService {
             throw new BadRequestError("One or more products are out of stock");
          }
 
-         const newOrder = await orderModel.create()
+         const newOrder = await orderModel.create({
+            order_userId: userId,
+            order_checout: checkout_order,
+            order_shipping: user_address,
+            order_payment: user_payment,
+            order_products: shop_order_ids_new
+         })
 
-         return newOrder;
+          
+
    }
 }
 
