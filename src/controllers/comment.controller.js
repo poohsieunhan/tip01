@@ -21,7 +21,7 @@ class CommentController{
     getCommentsByParentId = async (req, res, next) => {
         new SuccessResponse({
             message: "Get comments successfully",
-            metadata: await getCommentsByParentId({req.query})
+            metadata: await getCommentsByParentId(req.query)
         }).send(res);
     }
 
