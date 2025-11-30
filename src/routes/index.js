@@ -11,6 +11,7 @@ router.use('/api/v1/checkout', require('./checkout')) // Import checkout routes
 router.use('/api/v1/discount', require('./discount')) // Import discount routes
 router.use('/api/v1/inventory', require('./inventory')) // Import inventory routes
 router.use('/api/v1/product', require('./product')) // Import product routes
+router.use('/api/v1/notification', require('./notification')) // Import notification routes
 
 
 module.exports = router

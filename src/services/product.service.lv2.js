@@ -4,6 +4,7 @@ const {BadRequestError} = require("../core/error.response")
 const {findAllDraftForShop,findAllPublishedForShop,publishProductByShop,findAllProducts,updateProductById} = require("../models/repositories/product.repo")    
 const {removeUndefinedObject,updateNestedObjectParse} = require("../ultis")
 const {insertInventory} = require("../models/repositories/inventory.repo")
+const { pushNotiToSystem } = require("./notification.service")
 
 class ProductFactory{
     static productRegister = {}
@@ -82,6 +83,17 @@ class Product{
                 stock: this.product_quantity,
                 location: 'unKnow'
             })
+
+        //push notification new product to shop owner
+            pushNotiToSystem({
+                type: 'SHOP-001',
+                receiverId: 1,
+                senderId: this.product_shop,
+                options: { 
+                    produc_name: this.product_name,
+                    shop_name: this.product_shop
+                }  
+            }).then(rs=>console.log(rs)).catch(console.error)
         }
         return newProduct
     }

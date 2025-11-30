@@ -111,7 +111,7 @@ class CommentService{
             comment_productId: convertToObjectIdMongo(productId),
             comment_right: { $gt: rightValue }
         },{
-            $inc: { comment_right: -width }
+            $inc: { comment_right: -width } 
         })
 
         await CommentModel.updateMany({
