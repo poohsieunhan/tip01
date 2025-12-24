@@ -2,7 +2,7 @@
 
 const { Schema, model } = require('mongoose');
 
-const DOCUCMENT_NAME = 'Notification';
+const DOCUMENT_NAME = 'Notification';
 const COLLECTION_NAME = 'Notifications';
 
 const notificationSchema = new Schema({
@@ -13,7 +13,7 @@ const notificationSchema = new Schema({
     noti_options: { type: Object, default: {} },
 }, {
     timestamps: true,
-    collection: COLLECTION_NAMEnotificationSchema
+    collection: COLLECTION_NAME
 })
 
-module.exports = model(DOCUCMENT_NAME, notificationSchema);
+module.exports = model(DOCUMENT_NAME, notificationSchema);

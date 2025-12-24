@@ -1,39 +1,43 @@
 'use strict'
 
 const redis = require('redis')
-const {promisify} = require('util')
 const redisClient = redis.createClient()
-const {revervationInventory} = require('../models/repositories/inventory.repo')
+const { revervationInventory } = require('../models/repositories/inventory.repo')
 
-const pexpire = promisify(redisClient.pexpire).bind(redisClient)
-const setnxAsync = promisify(redisClient.setnx).bind(redisClient)
+// Connect to redis (Required for v4+)
+redisClient.connect().catch(console.error);
 
-const aquireLock = async (productId, quantity,cartId) => {
-    const key=`lock_v2023_${productId}`
+const aquireLock = async (productId, quantity, cartId) => {
+    const key = `lock_v2023_${productId}`
     const retryTimes = 10
-    const expireTime = 3000 //3s
+    const expireTime = 3000 // 3s
 
-    for(let i=0;i<retryTimes.length;i++){
-        // tao 1 key, thang nao nam giu thi duoc vao thanh toan
-        const result = await setnxAsync(key,expireTime)
-        console.log('result',result)
-        if(result===1){
-            const isReservation = await revervationInventory({productId,cartId,quantity})
-            if(isReservation.modifiedCount){
-                await pexpire(key,expireTime)
+    // FIXED: Changed retryTimes.length to retryTimes
+    for (let i = 0; i < retryTimes; i++) {
+        // In Redis v4, setNX returns a boolean
+        // We use the modern 'set' command with arguments for atomicity
+        const result = await redisClient.set(key, 'lock', {
+            NX: true,
+            PX: expireTime
+        })
+
+        if (result === 'OK') {
+            const isReservation = await revervationInventory({ productId, cartId, quantity })
+            if (isReservation.modifiedCount) {
                 return key
             }
-            return null;
-        }else{
-            await new Promise((resolve)=>setTimeout(resolve,50))
+            // If reservation fails, release the lock immediately and return null
+            await redisClient.del(key)
+            return null
+        } else {
+            // Wait 50ms before retrying
+            await new Promise((resolve) => setTimeout(resolve, 50))
         }
     }
 }
 
-// xoa key di
 const releaseLock = async (keyLock) => {
-    const delAyncKey = promisify(redisClient.del).bind(redisClient)
-    return await delAyncKey(keyLock)
+    return await redisClient.del(keyLock)
 }
 
 module.exports = {

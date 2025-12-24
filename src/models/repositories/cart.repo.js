@@ -1,5 +1,5 @@
-const {convertToObjectIdMongoose} = require("../../utils");
-const {cartModel} = require("../models/cart.model");
+const {convertToObjectIdMongoose} = require("../../ultis");
+const cartModel = require("../../models/cart.model");
 
 const findCartById = async ({cartId}) => {
     return await cartModel.findOne({

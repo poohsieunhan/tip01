@@ -4,9 +4,6 @@ const CartService = require("../services/cart.service")
 const {SuccessResponse} = require("../core/success.response");
 
 class CartController {
-    /**
-     * @description Create cart item
-     */
     addToCart = async (req,res,next) => {
         new SuccessResponse({
             message:"Add to cart successfully",
@@ -36,4 +33,4 @@ class CartController {
     }
 }
 
-modules.exports = new CartController()
+module.exports = new CartController()

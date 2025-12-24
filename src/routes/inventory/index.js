@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const InventoryController = require('../../controllers/inventory.controller');
-const {asyncHandler} = require('../../core/async.handler');
+const asyncHandler = require('../../helpers/asyncHandler.js');
 const {authenticationV2 } = require('../../auth/authUltis');
 
 
