@@ -29,7 +29,10 @@ const UploadImageFromLocalService = async ({
         console.log(result);
         return {
             image_url: result.secure_url,
-            shop_Id:8409
+            shop_Id:8409,
+            thumb_url: await cloudinary.url(result.public_id, {
+                width: 100, height: 100, crop: 'fill', format: 'jpg'
+            })
         }
     } catch (error) {
         console.error(error);   
