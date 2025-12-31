@@ -13,6 +13,8 @@ router.use('/api/v1/inventory', require('./inventory')) // Import inventory rout
 router.use('/api/v1/product', require('./product')) // Import product routes
 router.use('/api/v1/notification', require('./notification')) // Import notification routes
 router.use('/api/v1/upload', require('./upload')) // Import upload routes
+router.use('/api/v1/profile', require('./profile')) // Import profile routes
+router.use('/api/v1/rbac', require('./rbac')) // Import rbac
 
 
 module.exports = router
