@@ -1,4 +1,5 @@
 'use strict';
+const { BadRequestError, ErrorResponse } = require('../core/error.response');
 const { CREATED, SuccessResponse } = require('../core/success.response');
 const AccessService = require('../services/access.service');
 
@@ -23,9 +24,23 @@ class AccessController {
     }
     
     login = async (req, res, next) => {
-        new SuccessResponse({
-            metadata: await AccessService.login(req.body)
-        }).send(res);
+        const {email} = req.body;
+        if(!email){
+            throw new BadRequestError('Missing Email inputs')
+        }
+        const sendData = Object.assign(
+            {requestId: req.requestId},req.body);
+        const {code,...result} = await AccessService.login(sendData);
+        if(code === 206){
+            return new SuccessResponse({
+                message: "Login successfully - Need verify OTP",
+                metadata: result
+            }).send(res);
+        }else{
+            new ErrorResponse({
+                metadata: result,
+            }).send(res);
+        }
     }
     
     signUp = async (req, res, next) => {

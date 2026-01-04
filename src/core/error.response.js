@@ -1,12 +1,15 @@
 'use strict';
 
 const { ReasonPhrase, StatusCode } = require("../ultis/httpStatusCode");
+const  MyLogger  = require("../loggers/mylogger.log.js");
 
 
 class ErrorResponse extends Error {
     constructor(message, status) {
         super(message);
         this.status = status
+
+        this.now = Date.now();
     }
 }
 

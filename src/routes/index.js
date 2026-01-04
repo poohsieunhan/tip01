@@ -15,6 +15,8 @@ router.use('/api/v1/notification', require('./notification')) // Import notifica
 router.use('/api/v1/upload', require('./upload')) // Import upload routes
 router.use('/api/v1/profile', require('./profile')) // Import profile routes
 router.use('/api/v1/rbac', require('./rbac')) // Import rbac
+router.use('/api/v1/email', require('./email')) // Import auth
+router.use('/api/v1/user', require('./user'))
 
 
 module.exports = router
