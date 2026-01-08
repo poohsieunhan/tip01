@@ -1,6 +1,6 @@
 'use strict';
 const {SuccessResponse} = require('../core/success.response');
-const {newUserService} = require('../services/user.service');
+const {newUserService,checkLoginEmailTokenService} = require('../services/user.service');
 
 
 
@@ -15,8 +15,15 @@ class UserController {
         }).send(res)
     }
 
-    checkRegisterEmailToken = async() => {
-        
+    checkRegisterEmailToken = async(req) => {
+        const {token} = req.query;
+        const respond = await checkLoginEmailTokenService({
+           token});
+       new SuccessResponse({
+            message: 'User registered successfully',
+            statusCode: 201,
+            metadata: {token}
+        }).send(res)
     }
 }
 

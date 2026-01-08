@@ -1,11 +1,18 @@
 'use strict'
 
 const redis = require('redis')
-const redisClient = redis.createClient()
+//const redisClient = redis.createClient()
 const { revervationInventory } = require('../models/repositories/inventory.repo')
 
 // Connect to redis (Required for v4+)
-redisClient.connect().catch(console.error);
+// redisClient.connect().catch(console.error);
+
+const {getRedis}= require('../dbs/init.redis.js')
+const {
+    intanceConnect: redisClient
+} = getRedis()
+
+
 
 const aquireLock = async (productId, quantity, cartId) => {
     const key = `lock_v2023_${productId}`

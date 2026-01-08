@@ -27,6 +27,10 @@ app.use((req,res,next)=>{
 
 require('./dbs/init.mongodb.js'); // Initialize MongoDB connection
 //checkOverload(); // Start checking for overload
+const initRedis = require('./dbs/init.redis.js');
+initRedis.initRedis();
+
+
 
 app.use('',require('./routes')); // Import and use the routes
 
