@@ -10,12 +10,15 @@ router.use(apiKey);
 router.use(checkPermission('0000'));
 
 router.get('/search/:keySearch',asyncHandler(productController.getListSearchProduct));
+router.get('/sku/select_variation',asyncHandler(productController.findOneSku));
+router.get('/spu/get_spu_info',asyncHandler(productController.findOneSpu));
 router.get('',asyncHandler(productController.findAllProducts));
 router.get('/:product_id',asyncHandler(productController.findProduct));
 
 router.use(authenticationV2);
 
 router.post('',asyncHandler(productController.creatProduct));
+router.post('/spu/new',asyncHandler(productController.createSpu));
 router.patch('/:product_id',asyncHandler(productController.updateProduct));
 
 router.post('/publish/:id',asyncHandler(productController.publishProductByShop));

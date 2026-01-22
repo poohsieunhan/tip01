@@ -1,9 +1,54 @@
 'use strict';
 const { CREATED, SuccessResponse } = require('../core/success.response');
 const ProductService = require('../services/product.service.lv2');
+const { oneSku } = require('../services/sku.service');
+const {newSpu} = require('../services/spu.service');
 
 class ProductController {
-    
+
+    findOneSpu = async (req, res, next) => {
+        try {
+            const {product_id} = req.query
+            new SuccessResponse({
+                message:"Get one spu successfully",
+                metadata: await oneSpu({
+                    spu_id: product_id
+                })
+            }).send(res)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    findOneSku = async (req, res, next) => {
+        try {
+            const {sku_id, product_id} = req.query
+            new SuccessResponse({
+                message:"Get one sku successfully",
+                metadata: await oneSku({
+                    sku_id, product_id
+                })
+            }).send(res)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    createSpu = async (req, res, next) => {
+        try {
+            const spu = await newSpu({
+                ...req.body,
+                product_shop: req.user.userId
+            });
+            new SuccessResponse({
+                message: "Create Spu Successfully",
+                metadata: spu
+            }).send(res)    
+        } catch (error) {
+            next(error)
+        }
+    }
+
     
     creatProduct = async (req, res, next) => {
          // Sử dụng x-client-id từ header thay vì req.user.userId
